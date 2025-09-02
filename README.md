@@ -96,3 +96,19 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Environment
+
+Configure Postgres via environment variables:
+
+- DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SYNC
+
+By default DB_SYNC=true for quick start in dev. Set to false in production and manage migrations.
+
+## API overview
+
+- Users: CRUD under /users
+- Workspaces: CRUD under /workspaces, manage members under /workspaces/:id/members
+- Boards: CRUD under /boards
+- Lists: CRUD under /lists
+- Cards: CRUD under /cards, assignees under /cards/:id/assignees, comments under /cards/:id/comments
