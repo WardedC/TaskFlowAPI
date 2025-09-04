@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import dbConfig from './config/typeorm.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { BoardsModule } from './boards/boards.module';
@@ -18,6 +19,7 @@ import { CardsModule } from './cards/cards.module';
       inject: [dbConfig.KEY],
       useFactory: (config: ReturnType<typeof dbConfig>) => ({ ...config }),
     }),
+    AuthModule,
     UsersModule,
     WorkspacesModule,
     BoardsModule,
