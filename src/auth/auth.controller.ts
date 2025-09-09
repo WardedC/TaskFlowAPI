@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Delete, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { AuthService } from './auth.service.js';
-import { LoginDto, RegisterDto, AuthResponseDto, DeleteAccountDto } from './dto/auth.dto.js';
+import { AuthService } from './auth.service';
+import { LoginDto, RegisterDto, AuthResponseDto, DeleteAccountDto } from './dto/auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -9,10 +9,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Registrar un nuevo usuario' })
+  @ApiOperation({ summary: 'Registrar un nuevo usuario', description: 'Registra un usuario en el sistema. No devuelve accessToken. Para obtener token, usa /auth/login con un usuario admin.' })
   @ApiResponse({ 
     status: 201, 
-    description: 'Usuario registrado exitosamente',
+    description: 'Usuario registrado exitosamente (sin accessToken).',
     type: AuthResponseDto 
   })
   @ApiResponse({ status: 409, description: 'El email ya está registrado' })
@@ -25,7 +25,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Iniciar sesión' })
   @ApiResponse({ 
     status: 200, 
-    description: 'Login exitoso',
+    description: 'Login exitoso. accessToken presente �nicamente para rol admin.',
     type: AuthResponseDto 
   })
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
@@ -55,3 +55,4 @@ export class AuthController {
     return this.authService.deleteAccount(userId, dto);
   }
 }
+

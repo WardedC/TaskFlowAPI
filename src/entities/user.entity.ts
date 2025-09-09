@@ -21,6 +21,9 @@ export class User {
   @Column({ name: 'profile_image_url', type: 'text', nullable: true })
   profileImageUrl?: string | null;
 
+  @Column({ type: 'varchar', length: 20, default: 'user' })
+  role: string; // 'admin' | 'user'
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

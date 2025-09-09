@@ -1,15 +1,17 @@
 import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
-import { UsersService } from '../users/users.service.js';
-import { LoginDto, RegisterDto, AuthResponseDto, DeleteAccountDto } from './dto/auth.dto.js';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
+import { LoginDto, RegisterDto, AuthResponseDto, DeleteAccountDto } from './dto/auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity.js';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     @InjectRepository(User) private userRepo: Repository<User>,
+    private readonly jwt: JwtService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
@@ -19,28 +21,30 @@ export class AuthService {
       throw new ConflictException('El email ya está registrado');
     }
 
-    // Crear usuario usando el servicio de usuarios
+
     const user = await this.usersService.create({
       name: dto.name,
       email: dto.email,
       password: dto.password,
     });
 
+    // No emitimos token en registro
     return {
       message: 'Usuario registrado exitosamente',
       userId: user.id,
       userName: user.name,
-    };
+      role: user.role,
+    } as AuthResponseDto;
   }
 
   async login(dto: LoginDto): Promise<AuthResponseDto> {
-    // Buscar usuario por email
+    //const user busca el usuario por email
     const user = await this.userRepo.findOne({ where: { email: dto.email } });
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // Verificar contraseña usando el método del UsersService
+    // isPasswordValid valida contraseña usando el método del UsersService
     const isPasswordValid = await this.usersService.verifyPassword(
       dto.password,
       user.passwordHash,
@@ -50,15 +54,24 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    // Generamos token para cualquier rol (usuario o admin)
+    const accessToken = await this.signToken(user);
     return {
       message: 'Login exitoso',
       userId: user.id,
       userName: user.name,
-    };
+      role: user.role,
+      accessToken,
+    } as AuthResponseDto;
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
     return this.userRepo.findOne({ where: { email } });
+  }
+
+  private async signToken(user: User): Promise<string> {
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return this.jwt.signAsync(payload);
   }
 
   /**

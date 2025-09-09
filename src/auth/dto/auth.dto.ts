@@ -46,4 +46,10 @@ export class AuthResponseDto {
 
   @ApiProperty({ example: 'Juan Pérez', description: 'Nombre del usuario' })
   userName: string;
+
+  @ApiProperty({ example: 'user', description: 'Rol del usuario (user/admin)' })
+  role: string;
+
+  @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', description: 'Token JWT de acceso (solo se emite para admin en login)' })
+  accessToken?: string;
 }

@@ -1,11 +1,15 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CardsService } from './cards.service';
 import { AssignUserDto, CreateCardDto, UpdateCardDto } from '../dto/card.dto';
 import { CreateCommentDto } from '../dto/comment.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('cards')
 @Controller('cards')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('bearer')
+@ApiUnauthorizedResponse({ description: 'No autenticado (falta Bearer token)' })
 export class CardsController {
   constructor(private readonly svc: CardsService) {}
 

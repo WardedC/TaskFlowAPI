@@ -1,10 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { BoardsService } from './boards.service';
-import { CreateBoardDto, UpdateBoardDto } from '../dto/board.dto.js';
+import { CreateBoardDto, UpdateBoardDto } from '../dto/board.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('boards')
 @Controller('boards')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('bearer')
+@ApiUnauthorizedResponse({ description: 'No autenticado (falta Bearer token)' })
 export class BoardsController {
   constructor(private readonly svc: BoardsService) {}
 

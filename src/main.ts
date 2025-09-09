@@ -15,8 +15,9 @@ async function bootstrap() {
   // Configurar documentación con Scalar
   const config = new DocumentBuilder()
     .setTitle('TaskFlow API')
-    .setDescription('API para gestión de tareas, tableros y espacios de trabajo')
-    .setVersion('1.0')
+        .setVersion('1.0')
+    
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')
     .addTag('users', 'Gestión de usuarios')
     .addTag('workspaces', 'Gestión de espacios de trabajo')
     .addTag('boards', 'Gestión de tableros')
@@ -40,3 +41,6 @@ async function bootstrap() {
   console.log(`📚 Documentación API: http://localhost:${process.env.PORT ?? 3000}/api`);
 }
 bootstrap();
+
+
+
