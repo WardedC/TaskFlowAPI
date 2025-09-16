@@ -1,6 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+﻿import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Board } from './board.entity';
-import { Card } from './card.entity';
+import { Task } from './task.entity';
 
 @Entity('lists')
 export class List {
@@ -17,6 +17,6 @@ export class List {
   @JoinColumn({ name: 'board_id' })
   board: Board;
 
-  @OneToMany(() => Card, (c) => c.list)
-  cards: Card[];
+  @OneToMany(() => Task, (t) => t.list)
+  tasks: Task[];
 }

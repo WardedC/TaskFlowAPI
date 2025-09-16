@@ -1,95 +1,240 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Workspace } from '../entities/workspace.entity';
 import { WorkspaceMember } from '../entities/workspace-member.entity';
 import { User } from '../entities/user.entity';
-import { Board } from '../entities/board.entity';
 import { List } from '../entities/list.entity';
-import { Card } from '../entities/card.entity';
-import { AddWorkspaceMemberDto, CreateWorkspaceDto, UpdateWorkspaceDto } from '../dto/workspace.dto';
+import { Task } from '../entities/task.entity';
+import {
+  AddWorkspaceMemberDto,
+  CreateWorkspaceDto,
+  UpdateWorkspaceDto,
+} from '../dto/workspace.dto';
+
+export type WorkspaceSummary = {
+  workspaceId: number;
+  id: string;
+  title: string;
+  desc: string;
+  cover: string;
+  theme: string;
+  themeColor: string;
+  icon: string;
+  tasks: {
+    total: number;
+    completed: number;
+    pending: number;
+  };
+  members: number;
+  boards: number;
+  isFavorite: boolean;
+};
 
 @Injectable()
 export class WorkspacesService {
   constructor(
     @InjectRepository(Workspace) private wsRepo: Repository<Workspace>,
-    @InjectRepository(WorkspaceMember) private wmRepo: Repository<WorkspaceMember>,
+    @InjectRepository(WorkspaceMember)
+    private wmRepo: Repository<WorkspaceMember>,
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(Board) private boardRepo: Repository<Board>,
     @InjectRepository(List) private listRepo: Repository<List>,
-    @InjectRepository(Card) private cardRepo: Repository<Card>,
+    @InjectRepository(Task) private taskRepo: Repository<Task>,
   ) {}
 
   async create(dto: CreateWorkspaceDto) {
     const owner = await this.userRepo.findOne({ where: { id: dto.ownerId } });
     if (!owner) throw new NotFoundException('Owner not found');
-    const ws = this.wsRepo.create({ name: dto.name, owner });
+
+    const title = dto.title.trim();
+    const slugCandidate = this.generateSlug(dto.slug?.trim() ?? title);
+    const slug = await this.ensureUniqueSlug(slugCandidate);
+
+    const ws = this.wsRepo.create({
+      name: title,
+      slug,
+      owner,
+      description: dto.desc ?? null,
+      cover: dto.cover ?? null,
+      theme: dto.theme ?? 'indigo',
+      themeColor: dto.themeColor ?? '#4F46E5',
+      icon: dto.icon ?? null,tasksTotal: dto.tasks?.total ?? 0,
+      tasksCompleted: dto.tasks?.completed ?? 0,
+      tasksPending: dto.tasks?.pending ?? 0,
+      isFavorite: dto.isFavorite ?? false,
+    });
+
     const saved = await this.wsRepo.save(ws);
-    // owner as member with role 'owner'
-    await this.wmRepo.save(this.wmRepo.create({ workspace: saved, user: owner, role: 'owner' }));
-    return saved;
+    await this.wmRepo.save(
+      this.wmRepo.create({ workspace: saved, user: owner, role: 'owner' }),
+    );
+
+    return this.findOne(saved.id);
   }
 
-  findAll() {
-    return this.wsRepo.find({ relations: { owner: true } });
+  async findAll(): Promise<WorkspaceSummary[]> {
+    const workspaces = await this.wsRepo.find({
+      relations: { boards: true, members: true },
+      order: { updatedAt: 'DESC' },
+    });
+
+    return workspaces.map((ws) => this.presentWorkspace(ws));
   }
 
   async findOne(id: number) {
-    // Versión ligera: solo info básica + boards
-    const ws = await this.wsRepo.findOne({ 
-      where: { id }, 
-      relations: { 
+    const workspace = await this.wsRepo.findOne({
+      where: { id },
+      relations: {
         owner: true,
         members: { user: true },
-        boards: true  // Solo boards básicos, sin listas/cartas
-      } 
+        boards: true,
+      },
     });
-    if (!ws) throw new NotFoundException('Workspace not found');
-    return ws;
+    if (!workspace) throw new NotFoundException('Workspace not found');
+
+    const summary = this.presentWorkspace(workspace);
+    return {
+      ...summary,
+      owner: workspace.owner
+        ? {
+            id: workspace.owner.id,
+            name: workspace.owner.name,
+            email: workspace.owner.email,
+          }
+        : null,
+      membersDetail:
+        workspace.members?.map((member) => ({
+          id: member.id,
+          role: member.role,
+          userId: member.user?.id ?? null,
+          userName: member.user?.name ?? null,
+          userEmail: member.user?.email ?? null,
+        })) ?? [],
+      boardsDetail:
+        workspace.boards?.map((board) => ({
+          id: board.id,
+          title: board.title,
+        })) ?? [],
+    };
   }
 
   async findOneWithFullData(id: number) {
-    // Versión completa: para casos específicos
-    const ws = await this.wsRepo.findOne({ 
-      where: { id }, 
-      relations: { 
+    const workspace = await this.wsRepo.findOne({
+      where: { id },
+      relations: {
         owner: true,
         members: { user: true },
         boards: {
           lists: {
-            cards: true
-          }
-        }
-      } 
+            tasks: true,
+          },
+        },
+      },
     });
-    if (!ws) throw new NotFoundException('Workspace not found');
-    return ws;
+    if (!workspace) throw new NotFoundException('Workspace not found');
+
+    const summary = this.presentWorkspace(workspace);
+    return {
+      ...summary,
+      owner: workspace.owner
+        ? {
+            id: workspace.owner.id,
+            name: workspace.owner.name,
+            email: workspace.owner.email,
+          }
+        : null,
+      membersDetail:
+        workspace.members?.map((member) => ({
+          id: member.id,
+          role: member.role,
+          userId: member.user?.id ?? null,
+          userName: member.user?.name ?? null,
+          userEmail: member.user?.email ?? null,
+        })) ?? [],
+      boardTrees:
+        workspace.boards?.map((board) => ({
+          id: board.id,
+          title: board.title,
+          lists:
+            board.lists?.map((list) => ({
+              id: list.id,
+              title: list.title,
+              position: list.position,
+              tasks:
+                list.tasks?.map((task) => ({
+                  id: task.id,
+                  title: task.title,
+                  description: task.description,
+                  position: task.position,
+                  taskStatus: task.taskStatus,
+                })) ?? [],
+            })) ?? [],
+        })) ?? [],
+    };
   }
 
   async findOneOverview(id: number) {
-    // Versión dashboard: stats + info básica
-    const ws = await this.wsRepo.findOne({ 
-      where: { id }, 
-      relations: { owner: true, boards: true }
+    const workspace = await this.wsRepo.findOne({
+      where: { id },
+      relations: { owner: true, boards: true },
     });
-    if (!ws) throw new NotFoundException('Workspace not found');
-    
-    // Agregar estadísticas
+    if (!workspace) throw new NotFoundException('Workspace not found');
+
+    const summary = this.presentWorkspace(workspace);
     const stats = await Promise.all(
-      ws.boards.map(async board => ({
-        ...board,
+      workspace.boards.map(async (board) => ({
+        id: board.id,
+        title: board.title,
         listCount: await this.getListCount(board.id),
-        cardCount: await this.getCardCount(board.id)
-      }))
+        taskCount: await this.getTaskCount(board.id),
+      })),
     );
-    
-    return { ...ws, boards: stats };
+
+    return {
+      ...summary,
+      owner: workspace.owner
+        ? {
+            id: workspace.owner.id,
+            name: workspace.owner.name,
+            email: workspace.owner.email,
+          }
+        : null,
+      boardStats: stats,
+    };
   }
 
   async update(id: number, dto: UpdateWorkspaceDto) {
-    const ws = await this.findOne(id);
-    if (dto.name !== undefined) ws.name = dto.name;
-    return this.wsRepo.save(ws);
+    const workspace = await this.wsRepo.findOne({ where: { id } });
+    if (!workspace) throw new NotFoundException('Workspace not found');
+
+    if (dto.title !== undefined) {
+      workspace.name = dto.title.trim();
+    }
+    if (dto.desc !== undefined) {
+      workspace.description = dto.desc ?? null;
+    }
+    if (dto.cover !== undefined) {
+      workspace.cover = dto.cover ?? null;
+    }
+    if (dto.theme !== undefined) {
+      workspace.theme = dto.theme;
+    }
+    if (dto.themeColor !== undefined) {
+      workspace.themeColor = dto.themeColor;
+    }
+    if (dto.icon !== undefined) {
+      workspace.icon = dto.icon ?? null;
+    }    if (dto.tasks) {
+      workspace.tasksTotal = dto.tasks.total;
+      workspace.tasksCompleted = dto.tasks.completed;
+      workspace.tasksPending = dto.tasks.pending;
+    }
+    if (dto.isFavorite !== undefined) {
+      workspace.isFavorite = dto.isFavorite;
+    }
+
+    await this.wsRepo.save(workspace);
+    return this.findOne(id);
   }
 
   async remove(id: number) {
@@ -102,7 +247,9 @@ export class WorkspacesService {
     if (!ws) throw new NotFoundException('Workspace not found');
     const user = await this.userRepo.findOne({ where: { id: dto.userId } });
     if (!user) throw new NotFoundException('User not found');
-    return this.wmRepo.save(this.wmRepo.create({ workspace: ws, user, role: dto.role }));
+    return this.wmRepo.save(
+      this.wmRepo.create({ workspace: ws, user, role: dto.role }),
+    );
   }
 
   async removeMember(id: number, memberId: number) {
@@ -110,7 +257,6 @@ export class WorkspacesService {
     if (!res.affected) throw new NotFoundException('Member not found');
   }
 
-  // Métodos auxiliares para estadísticas
   private async getListCount(boardId: number): Promise<number> {
     return this.listRepo
       .createQueryBuilder('list')
@@ -119,12 +265,67 @@ export class WorkspacesService {
       .getCount();
   }
 
-  private async getCardCount(boardId: number): Promise<number> {
-    return this.cardRepo
-      .createQueryBuilder('card')
-      .innerJoin('card.list', 'list')
+  private async getTaskCount(boardId: number): Promise<number> {
+    return this.taskRepo
+      .createQueryBuilder('task')
+      .innerJoin('task.list', 'list')
       .innerJoin('list.board', 'board')
       .where('board.id = :boardId', { boardId })
       .getCount();
+  }
+
+  private presentWorkspace(workspace: Workspace): WorkspaceSummary {
+    const members = workspace.members?.length ?? 0;
+    const boards = workspace.boards?.length ?? 0;
+    const total = workspace.tasksTotal ?? 0;
+    const completed = workspace.tasksCompleted ?? 0;
+    const pending = workspace.tasksPending ?? Math.max(0, total - completed);
+
+    return {
+      workspaceId: workspace.id,
+      id: workspace.slug || `ws-${workspace.id}`,
+      title: workspace.name,
+      desc: workspace.description ?? '',
+      cover: workspace.cover ?? '/assets/FlowTask.png',
+      theme: workspace.theme ?? 'indigo',
+      themeColor: workspace.themeColor ?? '#4F46E5',
+      icon: workspace.icon ?? 'fas fa-layer-group',
+      tasks: {
+        total,
+        completed,
+        pending,
+      },
+      members,
+      boards,
+      isFavorite: workspace.isFavorite ?? false,
+    };
+  }
+  private generateSlug(title: string): string {
+    const normalized = title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    if (!normalized) {
+      return `ws-${Date.now()}`;
+    }
+    return normalized.startsWith('ws-') ? normalized : `ws-${normalized}`;
+  }
+
+  private async ensureUniqueSlug(
+    baseSlug: string,
+    excludeId?: number,
+  ): Promise<string> {
+    let candidate = baseSlug;
+    let suffix = 1;
+    while (true) {
+      const existing = await this.wsRepo.findOne({
+        where: { slug: candidate },
+      });
+      if (!existing || existing.id === excludeId) break;
+      candidate = `${baseSlug}-${suffix++}`;
+    }
+    return candidate;
   }
 }

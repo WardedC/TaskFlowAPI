@@ -1,5 +1,22 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto, UpdateBoardDto } from '../dto/board.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -16,14 +33,20 @@ export class BoardsController {
   @ApiOperation({ summary: 'Crear un nuevo tablero' })
   @ApiResponse({ status: 201, description: 'Tablero creado exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-  @ApiResponse({ status: 404, description: 'Espacio de trabajo no encontrado.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Espacio de trabajo no encontrado.',
+  })
   create(@Body() dto: CreateBoardDto) {
     return this.svc.create(dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los tableros' })
-  @ApiResponse({ status: 200, description: 'Lista de tableros obtenida exitosamente.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de tableros obtenida exitosamente.',
+  })
   findAll() {
     return this.svc.findAll();
   }
@@ -40,7 +63,10 @@ export class BoardsController {
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar un tablero' })
   @ApiParam({ name: 'id', description: 'ID del tablero' })
-  @ApiResponse({ status: 200, description: 'Tablero actualizado exitosamente.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tablero actualizado exitosamente.',
+  })
   @ApiResponse({ status: 404, description: 'Tablero no encontrado.' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBoardDto) {
     return this.svc.update(id, dto);

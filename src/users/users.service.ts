@@ -9,7 +9,6 @@ import * as bcrypt from 'bcryptjs';
 export class UsersService {
   constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
-
   /**s
    * Hash password using BCrypt with salt rounds of 12
    * More secure than SHA-256: includes automatic salt, slow by design
@@ -22,7 +21,10 @@ export class UsersService {
   /**
    * Verify password against stored hash (for future login functionality)
    */
-  async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  async verifyPassword(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
@@ -50,8 +52,10 @@ export class UsersService {
     const user = await this.findOne(id);
     if (dto.name !== undefined) user.name = dto.name;
     if (dto.email !== undefined) user.email = dto.email;
-    if (dto.password !== undefined) user.passwordHash = await this.hashPassword(dto.password);
-    if (dto.profileImageUrl !== undefined) user.profileImageUrl = dto.profileImageUrl;
+    if (dto.password !== undefined)
+      user.passwordHash = await this.hashPassword(dto.password);
+    if (dto.profileImageUrl !== undefined)
+      user.profileImageUrl = dto.profileImageUrl;
     return this.repo.save(user);
   }
 

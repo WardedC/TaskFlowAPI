@@ -1,6 +1,12 @@
 import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @ApiTags('auth')
@@ -32,10 +38,14 @@ export class MeController {
   // Endpoint de diagnóstico: muestra exactamente qué Authorization llega
   @Get('echo')
   @ApiOperation({ summary: 'Echo del header Authorization (diagnóstico)' })
-  @ApiResponse({ status: 200, description: 'Devuelve el header Authorization actual', schema: {
-    type: 'object',
-    properties: { authorization: { type: 'string' } }
-  }})
+  @ApiResponse({
+    status: 200,
+    description: 'Devuelve el header Authorization actual',
+    schema: {
+      type: 'object',
+      properties: { authorization: { type: 'string' } },
+    },
+  })
   echo(@Req() req: any) {
     return { authorization: req.headers?.authorization || null };
   }

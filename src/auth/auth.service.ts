@@ -1,7 +1,17 @@
-import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
+﻿import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { LoginDto, RegisterDto, AuthResponseDto, DeleteAccountDto } from './dto/auth.dto';
+import {
+  LoginDto,
+  RegisterDto,
+  AuthResponseDto,
+  DeleteAccountDto,
+} from './dto/auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -16,11 +26,12 @@ export class AuthService {
 
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     // Verificar si el email ya existe
-    const existingUser = await this.userRepo.findOne({ where: { email: dto.email } });
+    const existingUser = await this.userRepo.findOne({
+      where: { email: dto.email },
+    });
     if (existingUser) {
-      throw new ConflictException('El email ya está registrado');
+      throw new ConflictException('El email ya estÃ¡ registrado');
     }
-
 
     const user = await this.usersService.create({
       name: dto.name,
@@ -41,17 +52,17 @@ export class AuthService {
     //const user busca el usuario por email
     const user = await this.userRepo.findOne({ where: { email: dto.email } });
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('Credenciales invÃ¡lidas');
     }
 
-    // isPasswordValid valida contraseña usando el método del UsersService
+    // isPasswordValid valida contraseÃ±a usando el mÃ©todo del UsersService
     const isPasswordValid = await this.usersService.verifyPassword(
       dto.password,
       user.passwordHash,
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('Credenciales invÃ¡lidas');
     }
 
     // Generamos token para cualquier rol (usuario o admin)
@@ -75,33 +86,35 @@ export class AuthService {
   }
 
   /**
-   * Elimina la cuenta del usuario después de verificar su contraseña
-   * IMPORTANTE: Esto eliminará TODOS los datos relacionados (workspaces, boards, cards, etc.)
+   * Elimina la cuenta del usuario despuÃ©s de verificar su contraseÃ±a
+   * IMPORTANTE: Esto eliminarÃ¡ TODOS los datos relacionados (workspaces, boards, tasks, etc.)
    */
-  async deleteAccount(userId: number, dto: DeleteAccountDto): Promise<{ message: string }> {
+  async deleteAccount(
+    userId: number,
+    dto: DeleteAccountDto,
+  ): Promise<{ message: string }> {
     // 1. Buscar el usuario
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
-        
       throw new NotFoundException('Usuario no encontrado');
-
     }
 
-    // 2. Verificar contraseña actual
+    // 2. Verificar contraseÃ±a actual
     const isPasswordValid = await this.usersService.verifyPassword(
       dto.password,
       user.passwordHash,
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Contraseña incorrecta');
+      throw new UnauthorizedException('ContraseÃ±a incorrecta');
     }
 
-    // 3. Eliminar el usuario (esto también eliminará datos relacionados por CASCADE)
+    // 3. Eliminar el usuario (esto tambiÃ©n eliminarÃ¡ datos relacionados por CASCADE)
     await this.userRepo.delete(userId);
 
     return {
-      message: 'Cuenta eliminada exitosamente. Esperamos verte de nuevo en el futuro.',
+      message:
+        'Cuenta eliminada exitosamente. Esperamos verte de nuevo en el futuro.',
     };
   }
 }

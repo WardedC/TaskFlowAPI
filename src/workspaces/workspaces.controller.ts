@@ -1,7 +1,28 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { WorkspacesService } from './workspaces.service';
-import { AddWorkspaceMemberDto, CreateWorkspaceDto, UpdateWorkspaceDto } from '../dto/workspace.dto';
+import {
+  AddWorkspaceMemberDto,
+  CreateWorkspaceDto,
+  UpdateWorkspaceDto,
+} from '../dto/workspace.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('workspaces')
@@ -14,43 +35,70 @@ export class WorkspacesController {
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo espacio de trabajo' })
-  @ApiResponse({ status: 201, description: 'Espacio de trabajo creado exitosamente.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Espacio de trabajo creado exitosamente.',
+  })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-  @ApiResponse({ status: 404, description: 'Usuario propietario no encontrado.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario propietario no encontrado.',
+  })
   create(@Body() dto: CreateWorkspaceDto) {
     return this.svc.create(dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los espacios de trabajo' })
-  @ApiResponse({ status: 200, description: 'Lista de espacios de trabajo obtenida exitosamente.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de espacios de trabajo obtenida exitosamente.',
+  })
   findAll() {
     return this.svc.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener un espacio de trabajo por ID (versión ligera)' })
+  @ApiOperation({
+    summary: 'Obtener un espacio de trabajo por ID (versión ligera)',
+  })
   @ApiParam({ name: 'id', description: 'ID del espacio de trabajo' })
   @ApiResponse({ status: 200, description: 'Espacio de trabajo encontrado.' })
-  @ApiResponse({ status: 404, description: 'Espacio de trabajo no encontrado.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Espacio de trabajo no encontrado.',
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.svc.findOne(id);
   }
 
   @Get(':id/overview')
-  @ApiOperation({ summary: 'Obtener vista general del workspace con estadísticas' })
+  @ApiOperation({
+    summary: 'Obtener vista general del workspace con estadísticas',
+  })
   @ApiParam({ name: 'id', description: 'ID del espacio de trabajo' })
-  @ApiResponse({ status: 200, description: 'Vista general del workspace obtenida.' })
-  @ApiResponse({ status: 404, description: 'Espacio de trabajo no encontrado.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Vista general del workspace obtenida.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Espacio de trabajo no encontrado.',
+  })
   findOneOverview(@Param('id', ParseIntPipe) id: number) {
     return this.svc.findOneOverview(id);
   }
 
   @Get(':id/full')
-  @ApiOperation({ summary: 'Obtener workspace completo con boards, listas y cartas' })
+  @ApiOperation({
+    summary: 'Obtener workspace completo con boards, listas y cartas',
+  })
   @ApiParam({ name: 'id', description: 'ID del espacio de trabajo' })
   @ApiResponse({ status: 200, description: 'Workspace completo obtenido.' })
-  @ApiResponse({ status: 404, description: 'Espacio de trabajo no encontrado.' })
+  @ApiResponse({
+    status: 404,
+    description: 'Espacio de trabajo no encontrado.',
+  })
   findOneWithFullData(@Param('id', ParseIntPipe) id: number) {
     return this.svc.findOneWithFullData(id);
   }
@@ -58,17 +106,32 @@ export class WorkspacesController {
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar un espacio de trabajo' })
   @ApiParam({ name: 'id', description: 'ID del espacio de trabajo' })
-  @ApiResponse({ status: 200, description: 'Espacio de trabajo actualizado exitosamente.' })
-  @ApiResponse({ status: 404, description: 'Espacio de trabajo no encontrado.' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateWorkspaceDto) {
+  @ApiResponse({
+    status: 200,
+    description: 'Espacio de trabajo actualizado exitosamente.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Espacio de trabajo no encontrado.',
+  })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateWorkspaceDto,
+  ) {
     return this.svc.update(id, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un espacio de trabajo' })
   @ApiParam({ name: 'id', description: 'ID del espacio de trabajo' })
-  @ApiResponse({ status: 200, description: 'Espacio de trabajo eliminado exitosamente.' })
-  @ApiResponse({ status: 404, description: 'Espacio de trabajo no encontrado.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Espacio de trabajo eliminado exitosamente.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Espacio de trabajo no encontrado.',
+  })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.svc.remove(id);
   }
@@ -77,8 +140,14 @@ export class WorkspacesController {
   @ApiOperation({ summary: 'Agregar un miembro al espacio de trabajo' })
   @ApiParam({ name: 'id', description: 'ID del espacio de trabajo' })
   @ApiResponse({ status: 201, description: 'Miembro agregado exitosamente.' })
-  @ApiResponse({ status: 404, description: 'Espacio de trabajo o usuario no encontrado.' })
-  addMember(@Param('id', ParseIntPipe) id: number, @Body() dto: AddWorkspaceMemberDto) {
+  @ApiResponse({
+    status: 404,
+    description: 'Espacio de trabajo o usuario no encontrado.',
+  })
+  addMember(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AddWorkspaceMemberDto,
+  ) {
     return this.svc.addMember(id, dto);
   }
 

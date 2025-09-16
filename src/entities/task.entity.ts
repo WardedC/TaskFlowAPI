@@ -1,4 +1,4 @@
-import {
+﻿import {
   Column,
   CreateDateColumn,
   Entity,
@@ -9,11 +9,11 @@ import {
 } from 'typeorm';
 import { JoinColumn } from 'typeorm';
 import { List } from './list.entity';
-import { CardAssignee } from './card-assignee.entity';
+import { TaskAssignee } from './task-assignee.entity';
 import { Comment } from './comment.entity';
 
-@Entity('cards')
-export class Card {
+@Entity('tasks')
+export class Task {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -26,7 +26,10 @@ export class Card {
   @Column()
   position: number;
 
-  @ManyToOne(() => List, (l) => l.cards, { onDelete: 'CASCADE' })
+  @Column({ name: 'task_status', type: 'boolean', default: false })
+  taskStatus: boolean;
+
+  @ManyToOne(() => List, (l) => l.tasks, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'list_id' })
   list: List;
 
@@ -36,9 +39,9 @@ export class Card {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToMany(() => CardAssignee, (a) => a.card)
-  assignees: CardAssignee[];
+  @OneToMany(() => TaskAssignee, (a) => a.task)
+  assignees: TaskAssignee[];
 
-  @OneToMany(() => Comment, (c) => c.card)
+  @OneToMany(() => Comment, (c) => c.task)
   comments: Comment[];
 }

@@ -1,5 +1,22 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { ListsService } from './lists.service';
 import { CreateListDto, UpdateListDto } from '../dto/list.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -23,7 +40,10 @@ export class ListsController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener todas las listas' })
-  @ApiResponse({ status: 200, description: 'Lista de listas obtenida exitosamente.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de listas obtenida exitosamente.',
+  })
   findAll() {
     return this.svc.findAll();
   }

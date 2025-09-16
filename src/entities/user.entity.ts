@@ -1,7 +1,7 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+﻿import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Workspace } from './workspace.entity';
 import { WorkspaceMember } from './workspace-member.entity';
-import { CardAssignee } from './card-assignee.entity';
+import { TaskAssignee } from './task-assignee.entity';
 import { Comment } from './comment.entity';
 
 @Entity('users')
@@ -36,8 +36,8 @@ export class User {
   @OneToMany(() => WorkspaceMember, (wm) => wm.user)
   workspaceMemberships: WorkspaceMember[];
 
-  @OneToMany(() => CardAssignee, (ca) => ca.user)
-  assignedCards: CardAssignee[];
+  @OneToMany(() => TaskAssignee, (ta) => ta.user)
+  assignedTasks: TaskAssignee[];
 
   @OneToMany(() => Comment, (c) => c.user)
   comments: Comment[];

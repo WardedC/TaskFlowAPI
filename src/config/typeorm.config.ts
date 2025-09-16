@@ -1,12 +1,12 @@
-import { registerAs } from '@nestjs/config';
+﻿import { registerAs } from '@nestjs/config';
 import { DataSourceOptions } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Workspace } from '../entities/workspace.entity';
 import { WorkspaceMember } from '../entities/workspace-member.entity';
 import { Board } from '../entities/board.entity';
 import { List } from '../entities/list.entity';
-import { Card } from '../entities/card.entity';
-import { CardAssignee } from '../entities/card-assignee.entity';
+import { Task } from '../entities/task.entity';
+import { TaskAssignee } from '../entities/task-assignee.entity';
 import { Comment } from '../entities/comment.entity';
 
 export default registerAs(
@@ -19,6 +19,15 @@ export default registerAs(
     ssl: {
       rejectUnauthorized: false,
     },
-    entities: [User, Workspace, WorkspaceMember, Board, List, Card, CardAssignee, Comment],
+    entities: [
+      User,
+      Workspace,
+      WorkspaceMember,
+      Board,
+      List,
+      Task,
+      TaskAssignee,
+      Comment,
+    ],
   }),
 );

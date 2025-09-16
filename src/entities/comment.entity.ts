@@ -1,5 +1,12 @@
-import { CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, Column, JoinColumn } from 'typeorm';
-import { Card } from './card.entity';
+﻿import {
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Column,
+  JoinColumn,
+} from 'typeorm';
+import { Task } from './task.entity';
 import { User } from './user.entity';
 
 @Entity('comments')
@@ -10,9 +17,9 @@ export class Comment {
   @Column({ type: 'text' })
   content: string;
 
-  @ManyToOne(() => Card, (c) => c.comments, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'card_id' })
-  card: Card;
+  @ManyToOne(() => Task, (t) => t.comments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'task_id' })
+  task: Task;
 
   @ManyToOne(() => User, (u) => u.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })

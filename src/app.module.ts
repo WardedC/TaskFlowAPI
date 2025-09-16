@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+﻿import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import dbConfig from './config/typeorm.config';
@@ -9,7 +9,7 @@ import { UsersModule } from './users/users.module';
 import { WorkspacesModule } from './workspaces/workspaces.module';
 import { BoardsModule } from './boards/boards.module';
 import { ListsModule } from './lists/lists.module';
-import { CardsModule } from './cards/cards.module';
+import { TasksModule } from './tasks/tasks.module';
 // Feature modules will be added here
 
 @Module({
@@ -24,7 +24,7 @@ import { CardsModule } from './cards/cards.module';
     WorkspacesModule,
     BoardsModule,
     ListsModule,
-    CardsModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -15,7 +15,11 @@ export class ListsService {
   async create(dto: CreateListDto) {
     const board = await this.boardRepo.findOne({ where: { id: dto.boardId } });
     if (!board) throw new NotFoundException('Board not found');
-    const list = this.listRepo.create({ title: dto.title, position: dto.position, board });
+    const list = this.listRepo.create({
+      title: dto.title,
+      position: dto.position,
+      board,
+    });
     return this.listRepo.save(list);
   }
 
@@ -24,7 +28,10 @@ export class ListsService {
   }
 
   async findOne(id: number) {
-    const l = await this.listRepo.findOne({ where: { id }, relations: { board: true } });
+    const l = await this.listRepo.findOne({
+      where: { id },
+      relations: { board: true },
+    });
     if (!l) throw new NotFoundException('List not found');
     return l;
   }

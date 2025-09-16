@@ -1,5 +1,23 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiForbiddenResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -26,7 +44,10 @@ export class UsersController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
-  @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida exitosamente.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuarios obtenida exitosamente.',
+  })
   findAll() {
     return this.users.findAll();
   }
@@ -43,7 +64,10 @@ export class UsersController {
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar un usuario' })
   @ApiParam({ name: 'id', description: 'ID del usuario' })
-  @ApiResponse({ status: 200, description: 'Usuario actualizado exitosamente.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario actualizado exitosamente.',
+  })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.users.update(id, dto);

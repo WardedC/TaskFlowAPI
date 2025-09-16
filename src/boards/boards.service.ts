@@ -13,7 +13,9 @@ export class BoardsService {
   ) {}
 
   async create(dto: CreateBoardDto) {
-    const workspace = await this.wsRepo.findOne({ where: { id: dto.workspaceId } });
+    const workspace = await this.wsRepo.findOne({
+      where: { id: dto.workspaceId },
+    });
     if (!workspace) throw new NotFoundException('Workspace not found');
     const board = this.boardRepo.create({ title: dto.title, workspace });
     return this.boardRepo.save(board);
@@ -24,7 +26,10 @@ export class BoardsService {
   }
 
   async findOne(id: number) {
-    const b = await this.boardRepo.findOne({ where: { id }, relations: { workspace: true } });
+    const b = await this.boardRepo.findOne({
+      where: { id },
+      relations: { workspace: true },
+    });
     if (!b) throw new NotFoundException('Board not found');
     return b;
   }

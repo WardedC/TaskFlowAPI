@@ -5,7 +5,7 @@ export class CreateBoardDto {
   @ApiProperty({
     description: 'Título del tablero',
     example: 'Desarrollo de la App Móvil',
-    maxLength: 150
+    maxLength: 150,
   })
   @IsString()
   @MaxLength(150)
@@ -14,7 +14,7 @@ export class CreateBoardDto {
   @ApiProperty({
     description: 'ID del espacio de trabajo donde se creará el tablero',
     example: 1,
-    minimum: 1
+    minimum: 1,
   })
   @IsInt()
   @Min(1)
@@ -25,7 +25,7 @@ export class UpdateBoardDto {
   @ApiPropertyOptional({
     description: 'Nuevo título del tablero',
     example: 'Desarrollo de la App Web',
-    maxLength: 150
+    maxLength: 150,
   })
   @IsOptional()
   @IsString()

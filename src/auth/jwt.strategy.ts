@@ -34,7 +34,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         console.warn('[JWT] Usuario no encontrado para sub:', payload.sub);
         throw new UnauthorizedException('Usuario no encontrado');
       }
-      const safeUser = { id: user.id, email: user.email, name: user.name, role: user.role };
+      const safeUser = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      };
       console.log('[JWT] Usuario validado:', safeUser);
       return safeUser;
     } catch (e) {
