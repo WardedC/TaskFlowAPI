@@ -30,23 +30,11 @@ export class WorkspaceTasksDto {
 }
 
 export class CreateWorkspaceDto {
-  @ApiProperty({ description: 'Título visible del workspace', example: 'Marketing', maxLength: 150 })
+  @ApiProperty({ description: 'Título visible del workspace', example: 'Marketing Team', maxLength: 150 })
   @IsString()
   @IsNotEmpty()
   @MaxLength(150)
   title: string;
-
-  @ApiProperty({ description: 'ID del usuario propietario del workspace', example: 1, minimum: 1 })
-  @IsInt()
-  @Min(1)
-  ownerId: number;
-
-  @ApiPropertyOptional({ description: 'Identificador legible o slug del workspace', example: 'ws-marketing', maxLength: 180 })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(180)
-  slug?: string;
 
   @ApiPropertyOptional({ description: 'Descripción corta que verá el usuario', example: 'Campañas, contenidos y calendario social.' })
   @IsOptional()

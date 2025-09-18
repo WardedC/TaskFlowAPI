@@ -16,20 +16,36 @@ async function bootstrap() {
     }),
   );
 
-  // Configurar documentaciÃ³n con Scalar
+  // Configurar documentación con Scalar
   const config = new DocumentBuilder()
     .setTitle('TaskFlow API')
+    .setDescription(`
+      API REST para gestión de tareas tipo Kanban con arquitectura jerárquica:
+      **User → Workspace → Board → List → Task**
+      
+      ## 🔒 Seguridad
+      - Todos los endpoints (excepto auth) requieren JWT Bearer token
+      - Los usuarios solo pueden acceder a sus propios workspaces
+      - Solo usuarios admin reciben token JWT en login
+      
+      ## 📋 Flujo básico
+      1. **POST /auth/login** - Autenticarse (solo admin recibe token)
+      2. **GET /workspaces** - Ver mis workspaces
+      3. **GET /workspaces/{id}/full** - Cargar workspace completo
+      4. **POST /tasks** - Crear nuevas tareas
+      5. **PUT /tasks/{id}** - Actualizar estado de tareas
+    `)
     .setVersion('1.0')
-
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'bearer',
     )
-    .addTag('users', 'GestiÃ³n de usuarios')
-    .addTag('workspaces', 'GestiÃ³n de espacios de trabajo')
-    .addTag('boards', 'GestiÃ³n de tableros')
-    .addTag('lists', 'GestiÃ³n de listas')
-    .addTag('cards', 'GestiÃ³n de tarjetas')
+    .addTag('auth', '🔐 Autenticación y gestión de usuarios')
+    .addTag('workspaces', '🏢 Espacios de trabajo (solo mis workspaces)')
+    .addTag('boards', '📋 Tableros Kanban')
+    .addTag('lists', '📝 Listas de tareas')
+    .addTag('tasks', '✅ Tareas y asignaciones')
+    .addTag('users', '👥 Gestión de usuarios')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

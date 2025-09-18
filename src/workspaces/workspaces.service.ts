@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Workspace } from '../entities/workspace.entity';
@@ -14,7 +14,6 @@ import {
 
 export type WorkspaceSummary = {
   workspaceId: number;
-  id: string;
   title: string;
   desc: string;
   cover: string;
@@ -42,23 +41,21 @@ export class WorkspacesService {
     @InjectRepository(Task) private taskRepo: Repository<Task>,
   ) {}
 
-  async create(dto: CreateWorkspaceDto) {
-    const owner = await this.userRepo.findOne({ where: { id: dto.ownerId } });
-    if (!owner) throw new NotFoundException('Owner not found');
+  async create(dto: CreateWorkspaceDto, ownerId: number) {
+    const owner = await this.userRepo.findOne({ where: { id: ownerId } });
+    if (!owner) throw new NotFoundException('Usuario autenticado no encontrado');
 
     const title = dto.title.trim();
-    const slugCandidate = this.generateSlug(dto.slug?.trim() ?? title);
-    const slug = await this.ensureUniqueSlug(slugCandidate);
 
     const ws = this.wsRepo.create({
       name: title,
-      slug,
       owner,
       description: dto.desc ?? null,
       cover: dto.cover ?? null,
       theme: dto.theme ?? 'indigo',
       themeColor: dto.themeColor ?? '#4F46E5',
-      icon: dto.icon ?? null,tasksTotal: dto.tasks?.total ?? 0,
+      icon: dto.icon ?? null,
+      tasksTotal: dto.tasks?.total ?? 0,
       tasksCompleted: dto.tasks?.completed ?? 0,
       tasksPending: dto.tasks?.pending ?? 0,
       isFavorite: dto.isFavorite ?? false,
@@ -81,7 +78,34 @@ export class WorkspacesService {
     return workspaces.map((ws) => this.presentWorkspace(ws));
   }
 
-  async findOne(id: number) {
+  async findAllByUser(userId: number): Promise<WorkspaceSummary[]> {
+    // Buscar workspaces donde el usuario es owner o miembro
+    const workspaces = await this.wsRepo
+      .createQueryBuilder('workspace')
+      .leftJoinAndSelect('workspace.boards', 'boards')
+      .leftJoinAndSelect('workspace.members', 'members')
+      .leftJoinAndSelect('workspace.owner', 'owner')
+      .where('workspace.owner_id = :userId', { userId })
+      .orWhere('members.user_id = :userId', { userId })
+      .orderBy('workspace.updated_at', 'DESC')
+      .getMany();
+
+    return workspaces.map((ws) => this.presentWorkspace(ws));
+  }
+
+  // Método auxiliar para verificar acceso del usuario al workspace
+  private async verifyUserAccess(workspaceId: number, userId: number): Promise<boolean> {
+    const hasAccess = await this.wsRepo
+      .createQueryBuilder('workspace')
+      .leftJoin('workspace.members', 'members')
+      .where('workspace.id = :workspaceId', { workspaceId })
+      .andWhere('(workspace.owner_id = :userId OR members.user_id = :userId)', { userId })
+      .getOne();
+
+    return !!hasAccess;
+  }
+
+  async findOne(id: number, userId?: number) {
     const workspace = await this.wsRepo.findOne({
       where: { id },
       relations: {
@@ -91,6 +115,11 @@ export class WorkspacesService {
       },
     });
     if (!workspace) throw new NotFoundException('Workspace not found');
+
+    // Verificar acceso si se proporciona userId
+    if (userId && !(await this.verifyUserAccess(id, userId))) {
+      throw new ForbiddenException('No tienes acceso a este workspace');
+    }
 
     const summary = this.presentWorkspace(workspace);
     return {
@@ -118,7 +147,7 @@ export class WorkspacesService {
     };
   }
 
-  async findOneWithFullData(id: number) {
+  async findOneWithFullData(id: number, userId?: number) {
     const workspace = await this.wsRepo.findOne({
       where: { id },
       relations: {
@@ -132,6 +161,11 @@ export class WorkspacesService {
       },
     });
     if (!workspace) throw new NotFoundException('Workspace not found');
+
+    // Verificar acceso si se proporciona userId
+    if (userId && !(await this.verifyUserAccess(id, userId))) {
+      throw new ForbiddenException('No tienes acceso a este workspace');
+    }
 
     const summary = this.presentWorkspace(workspace);
     return {
@@ -173,12 +207,17 @@ export class WorkspacesService {
     };
   }
 
-  async findOneOverview(id: number) {
+  async findOneOverview(id: number, userId?: number) {
     const workspace = await this.wsRepo.findOne({
       where: { id },
       relations: { owner: true, boards: true },
     });
     if (!workspace) throw new NotFoundException('Workspace not found');
+
+    // Verificar acceso si se proporciona userId
+    if (userId && !(await this.verifyUserAccess(id, userId))) {
+      throw new ForbiddenException('No tienes acceso a este workspace');
+    }
 
     const summary = this.presentWorkspace(workspace);
     const stats = await Promise.all(
@@ -283,7 +322,6 @@ export class WorkspacesService {
 
     return {
       workspaceId: workspace.id,
-      id: workspace.slug || `ws-${workspace.id}`,
       title: workspace.name,
       desc: workspace.description ?? '',
       cover: workspace.cover ?? '/assets/FlowTask.png',
@@ -299,33 +337,5 @@ export class WorkspacesService {
       boards,
       isFavorite: workspace.isFavorite ?? false,
     };
-  }
-  private generateSlug(title: string): string {
-    const normalized = title
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-    if (!normalized) {
-      return `ws-${Date.now()}`;
-    }
-    return normalized.startsWith('ws-') ? normalized : `ws-${normalized}`;
-  }
-
-  private async ensureUniqueSlug(
-    baseSlug: string,
-    excludeId?: number,
-  ): Promise<string> {
-    let candidate = baseSlug;
-    let suffix = 1;
-    while (true) {
-      const existing = await this.wsRepo.findOne({
-        where: { slug: candidate },
-      });
-      if (!existing || existing.id === excludeId) break;
-      candidate = `${baseSlug}-${suffix++}`;
-    }
-    return candidate;
   }
 }

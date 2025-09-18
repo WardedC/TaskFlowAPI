@@ -20,9 +20,6 @@ export class Workspace {
   @Column({ length: 150 })
   name: string;
 
-  @Column({ length: 180, unique: true })
-  slug: string;
-
   @Column({ type: 'text', nullable: true })
   description?: string | null;
 
