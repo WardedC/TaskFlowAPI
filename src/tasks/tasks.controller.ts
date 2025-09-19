@@ -5,6 +5,7 @@
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   UseGuards,
@@ -61,6 +62,18 @@ export class TasksController {
   @ApiResponse({ status: 404, description: 'Task not found' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaskDto) {
     return this.svc.update(id, dto);
+  }
+
+  @Patch(':id/toggle-status')
+  @ApiOperation({ 
+    summary: 'Toggle task completion status',
+    description: 'Alterna el estado de completado de una tarea (true/false) y actualiza automáticamente los contadores del board y workspace'
+  })
+  @ApiParam({ name: 'id', description: 'Task ID', type: 'number' })
+  @ApiResponse({ status: 200, description: 'Task status toggled successfully and counters updated' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
+  toggleStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.svc.toggleStatus(id);
   }
 
   @Delete(':id')

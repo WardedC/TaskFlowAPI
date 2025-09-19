@@ -19,6 +19,15 @@ export class Board {
   @Column({ length: 150 })
   title: string;
 
+  @Column({ name: 'tasks_total', type: 'int', default: 0 })
+  tasksTotal: number;
+
+  @Column({ name: 'tasks_completed', type: 'int', default: 0 })
+  tasksCompleted: number;
+
+  @Column({ name: 'tasks_pending', type: 'int', default: 0 })
+  tasksPending: number;
+
   @ManyToOne(() => Workspace, (ws) => ws.boards, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'workspace_id' })
   workspace: Workspace;

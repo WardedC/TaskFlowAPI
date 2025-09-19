@@ -1,5 +1,24 @@
 import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { ValidateNested } from 'class-validator';
+
+export class BoardTasksDto {
+  @ApiProperty({ description: 'Total de tareas asociadas al tablero', example: 19, minimum: 0 })
+  @IsInt()
+  @Min(0)
+  total: number;
+
+  @ApiProperty({ description: 'Tareas completadas', example: 15, minimum: 0 })
+  @IsInt()
+  @Min(0)
+  completed: number;
+
+  @ApiProperty({ description: 'Tareas pendientes', example: 4, minimum: 0 })
+  @IsInt()
+  @Min(0)
+  pending: number;
+}
 
 export class CreateBoardDto {
   @ApiProperty({
@@ -19,6 +38,15 @@ export class CreateBoardDto {
   @IsInt()
   @Min(1)
   workspaceId: number;
+
+  @ApiPropertyOptional({
+    description: 'Contadores de tareas iniciales para el tablero',
+    type: BoardTasksDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BoardTasksDto)
+  tasks?: BoardTasksDto;
 }
 
 export class UpdateBoardDto {
@@ -31,4 +59,13 @@ export class UpdateBoardDto {
   @IsString()
   @MaxLength(150)
   title?: string;
+
+  @ApiPropertyOptional({
+    description: 'Actualizar contadores de tareas del tablero',
+    type: BoardTasksDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BoardTasksDto)
+  tasks?: BoardTasksDto;
 }

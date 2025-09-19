@@ -17,7 +17,14 @@ export class BoardsService {
       where: { id: dto.workspaceId },
     });
     if (!workspace) throw new NotFoundException('Workspace not found');
-    const board = this.boardRepo.create({ title: dto.title, workspace });
+    
+    const board = this.boardRepo.create({ 
+      title: dto.title, 
+      workspace,
+      tasksTotal: dto.tasks?.total ?? 0,
+      tasksCompleted: dto.tasks?.completed ?? 0,
+      tasksPending: dto.tasks?.pending ?? 0,
+    });
     return this.boardRepo.save(board);
   }
 
@@ -37,6 +44,11 @@ export class BoardsService {
   async update(id: number, dto: UpdateBoardDto) {
     const b = await this.findOne(id);
     if (dto.title !== undefined) b.title = dto.title;
+    if (dto.tasks) {
+      b.tasksTotal = dto.tasks.total;
+      b.tasksCompleted = dto.tasks.completed;
+      b.tasksPending = dto.tasks.pending;
+    }
     return this.boardRepo.save(b);
   }
 
